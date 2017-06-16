@@ -1,0 +1,717 @@
+<<set-parent_yak, echo=FALSE,cache=FALSE,eval=TRUE>>=
+set_parent('Parent.Rnw')
+@
+
+<<load_yak,echo=FALSE,message=FALSE,warning=FALSE>>=
+library(tidyverse)
+library(mgcv)
+library(maps)
+library(mapdata)
+library(zoo)
+library(reshape2)
+library(gridExtra)
+library(extrafont)
+loadfonts(device="win")
+theme_set(theme_bw(base_size=11, base_family='Times New Roman')+
+			 	theme(panel.grid.major = element_blank(), 
+			 			panel.grid.minor = element_blank(),
+			 			strip.background = element_blank())) #,base_family='Times New Roman'
+library(lubridate)
+library(xtable)
+@
+
+<<data_yak,echo=FALSE,message=FALSE,warning=FALSE>>=
+ak <- map_data('worldHires', c('USA:Alaska','Canada'))
+
+values <- c('2016'='#2b8cbebb','2015'='#54278840','2014'='#998ec340',
+				'2013'='#d8daeb40','2012'='#fee0b640','2011'='#f1a34040',
+				'2010'='#b3580640', '2009'=1) 
+breaks <- c('2016','2015','2014','2013','2012','2011','2010','2009')
+
+yak <- read_csv('../output/yak.csv')
+yak %>% 
+	mutate(Year=factor(Year),
+		 Vessel = factor(Vessel),
+		 FY = factor(FY),
+		 Bed = factor(Bed, levels = c('B', '1', '2', '3', '4', '5', 'D16')),
+		 dum=1) -> yak
+
+sh <- read_csv('../output/sh.csv')
+
+by <- read.csv("../output/by.csv")
+      by %>%
+      mutate(set_date = as.Date(Set_Date, "%m-%d-%Y"),
+             date = yday(set_date),
+             Year = factor(year),
+             Vessel = factor(ADFG)) -> by
+      
+ages <- read.csv("../output/ages.csv")
+   ages %>%
+      mutate(set_date = as.Date(set_date, "%Y-%m-%d"),
+             date = yday(set_date),
+             Year = factor(year),
+             Vessel = factor(ADFG),
+             annuli = ifelse(annuli>19, 20, annuli)) -> ages
+   
+adjust <- read.csv("../output/adjust.csv")   
+   
+source('../code/functions.R')
+
+x <- yak %>% 
+	filter(mw.cpue.t>0)
+
+xy <- x %>% filter(District=='YAK')
+xd <- x %>% filter(District=='D16')
+
+xy %>% 
+	group_by(FY) %>% 
+	filter(District=='YAK') %>% 
+	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> yt1
+mghl = data.frame(ghl=c(rep(160000,3),rep(120000,5)))
+
+yt1 <- bind_cols(mghl,yt1) %>% 
+	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
+
+
+xd %>% 
+	group_by(FY) %>% 
+	filter(District=='D16') %>% 
+	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> dt1
+
+mghl = data.frame(ghl=c(rep(25000,7),rep(5000,1)))
+
+dt1 <- bind_cols(mghl,dt1) %>% 
+	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
+
+@
+
+\subsection{Yakutat}
+\subsubsection{Fishery performance}
+
+\textbf{Biometric synopsis}: The Yakutat District is performing well though the harvest locations have contracted, particularly in Bed 3.  \\
+
+  The 2016/17 Yakutat District scallop fishery opened on July 1, 2016 with a GHL of 120,000 lb of scallop meat. Two vessels particpated in the fishery (Figure \ref{fig:yakvessel}) harvesting 120,140 lb scallop meat with a raw cpue of 58 lb meat/dredge hour (Table \ref{table:yakt1}). No distinct trends in size of scallops are observed (scallops are not yet aged from the 2016/17 season), nor do the discard rates or meat retention / round weight diverge substantially from historic rates indicating that the trends are related to abundance. Harvest locations were restricted compared to previous years (Figure \ref{fig:map_yak}). 
+  
+   \begin{table}[H]
+   \centering
+   \caption{Yakutat District catch summary (excludes District 16).}
+   
+   \label{table:yakt1}
+    	\begin{tabular}{lcrrcccc}
+  		&&  \multicolumn{2}{c}{Retained catch} & Dredge  & Numer  & Meat wt  & Round wt\\ 
+  		Year	&GHL&(lb meat)  & (lb round)              & hours   & hauls   & cpue$^a$ & cpue$^b$    \\ 
+  		\hline	
+		1995	& 					& 242,491& 3,214,968 &  4,712&  2,597&  51  & 682\\ 
+		1996	& 					& 238,736& 3,195,254 &  3,982&  2,102&  60  &  802\\ 
+		1997/98	& 				& 242,940& 	3,282,860& 	3,956& 	1,958& 	61 & 830\\
+		1998/99	& 				& 241,678& 	3,475,996& 	4,192& 	2,193& 	58 & 830\\
+		1999/00	& 				& 249,681& 	3,119,103& 	3,840& 	1,720& 	65 & 812\\
+		2000/01	& 250,000	& 195,699& 	2,734,559& 	4,241& 	2,111& 	46 & 645\\
+		2001/02	& 200,000	& 103,800& 	1,521,537& 	2,406& 	1,096& 	43 & 632\\
+		2002/03	& 200,000	& 122,718& 	1,541,867& 	2,439& 	1,243& 	50 & 632\\
+		2003/04	& 200,000	& 160,918& 	1,939,004& 	3,358& 	1,716& 	48 & 577\\
+		2004/05	& 200,000	& 86,950& 	1,262,499& 	2,134& 	1,194& 	41 & 592\\
+		2005/06	& 200,000	& 199,351& 	2,662,031& 	5,089& 	2,585& 	39 & 523\\
+		2006/07	& 150,000	& 150,950& 	1,771,229& 	2,817& 	1,533& 	54 & 629\\
+		2007/08	& 150,000	& 125,960& 	1,593,223& 	2,601& 	1,416& 	48 & 613\\
+		2008/09	& 150,000	& 150,289& 	2,053,912& 	3,286& 	1,825& 	46 & 625\\
+	<<midtbl,echo=FALSE,message=FALSE,warning=FALSE, results='asis'>>=		
+			print(xtable(yt1,align="llcrrcccc",digits=0),only.contents=TRUE, include.rownames=FALSE, 
+					floating=FALSE, include.colnames=FALSE, hline.after=NULL, format.args = list(big.mark = ","))
+@
+  		\hline	
+	\multicolumn{3}{l}{$^a$lb scallop meat/dredge hour}	\\
+		\multicolumn{3}{l}{$^b$lb scallop round/dredge hour}
+   \end{tabular} 
+   \end{table}
+   
+CPUE was modeled using a generalized additive model (gam) of form:  
+$$cpue = f_1(depth) + f_2(long,lat) + f_3(bed) + f_4(vessel) + year$$  
+where $fs$ are smoothers, bed and vessel are brought in as a random effects, year is a factor. For prediction purposes the depth and locations are held at their median values and the random effect is ignored. Depth = 44, longitude = -139.9083, latitude = 59.4849 Note that this standardization differs from last year in that values are now point estimates based upon a ``generic" bed and vessel at a given depth and location, to be more inline with managing as a district (as opposed to per bed). District 16 was modeled seperately without a bed effect, depth was held at 40, lonitude at -137.8792, and latitude at 58.645. 
+
+<<model_yak,echo=FALSE,message=FALSE,warning=FALSE>>=
+	fit <- bam(mwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Bed, bs='re', by=dum) + s(Vessel, bs='re', by=dum), data=xy, gamma=1.4)
+	fit1 <-bam(rwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Bed, bs='re', by=dum) + s(Vessel, bs='re', by=dum), data=xy, gamma=1.4)
+	
+	fit2 <- bam(mwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Vessel, bs='re', by=dum), data=xd, gamma=1.4)
+	fit3 <-bam(rwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Vessel, bs='re', by=dum), data=xd, gamma=1.4)
+	
+	xy$fit <- predict(fit, xy, type='response')
+	xy$fit1 <- predict(fit1, xy, type='response')
+	
+#xy %>% summarise(depth=median(depth), long=median(set_lon), lat = median(set_lat))	
+	
+	newd <- expand.grid(Vessel = '58200', dum=0, year = unique(xy$year), Bed=c('1'),
+								depth = 44, set_lon = -139.9083, set_lat = 59.4849)
+	newd$Year <- factor(newd$year)
+
+	newd$fit <- as.numeric(predict(fit,newd, type='response'))
+	newd$fit1 <- as.numeric(predict(fit1,newd, type='response'))
+	
+
+
+# District 16
+	xd$fit <- predict(fit2, xd, type='response')
+	xd$fit1 <- predict(fit3, xd, type='response')
+
+# xd %>% summarise(depth=median(depth), long=median(set_lon), lat = median(set_lat))	
+	
+	newd1 <- expand.grid(Vessel = '58200', dum=0, year = unique(xd$year), Bed=c('1'),
+								depth = 40, set_lon = -137.8792, set_lat = 58.645)
+	newd1$Year <- factor(newd1$year)
+
+	newd1$fit <- as.numeric(predict(fit2,newd1, type='response'))
+	newd1$fit1 <- as.numeric(predict(fit3,newd1, type='response'))
+	
+	
+x <- bind_rows(xy,xd)	
+
+
+@
+
+
+ \begin{table}[H]
+   \centering
+   \caption{Yakutat District catch summary (excludes District 16) for the 2009/10-2016/17 season for raw and standardized meat weight data. Data in this table are from the Kodiak Wiki*}
+   \label{table:yak2}
+   \vspace{1.5ex}
+   \begin{tabular}{lrrcrrc}
+   \hline
+   &\multicolumn{3}{c}{Raw cpue} & Standardized\\ 
+   Year	& median&	mean & sd	& cpue\\
+   \hline\\[-1.5ex]
+   
+  <<mwt_std_yak,echo=FALSE,message=FALSE,warning=FALSE, results="asis">>=
+xy %>% 
+	group_by(year) %>% 
+	summarise(median = median((exp(mwt.cpue)-adjust$mwt.adjust)),
+             mean = mean((exp(mwt.cpue)-adjust$mwt.adjust)),
+             sd = sd((exp(mwt.cpue)-adjust$mwt.adjust))) -> temp
+
+
+newd %>% 
+      group_by(year) %>% 
+      summarise('std cpue' = exp(fit)-adjust$mwt.adjust) %>% 
+	left_join(temp) %>% 
+	dplyr::select(year, median, mean, sd, `std cpue`) %>% 
+	as.data.frame() -> temp
+	print(xtable(temp,align="llcccc",digits=c(0,0,1,1,1,1), caption="A table", label='table:t1'),
+			only.contents=TRUE, include.rownames=FALSE, floating=FALSE, include.colnames=FALSE, hline.after=NULL)
+
+@
+   \hline
+   \multicolumn{7}{l}{*Data from Wiki are different from older versions.}
+   \end{tabular}
+   \end{table}
+   
+ \begin{table}[H]
+   \centering
+   \caption{Yakutat District catch summary (excludes District 16) for the 2009/10-2016/17 season for raw and standardized round weight data. Data in this table are from the Kodiak Wiki*}
+   \label{table:yak3}
+   \vspace{1.5ex}
+   \begin{tabular}{lrrcrrc}
+   \hline
+   &\multicolumn{3}{c}{Raw cpue} & Standardized\\ 
+   Year	& median&	mean & sd	& cpue\\
+   \hline\\[-1.5ex]
+   
+  <<rwt_std_yak,echo=FALSE,message=FALSE,warning=FALSE, results="asis">>=
+xy %>% 
+	group_by(year) %>% 
+	summarise(median = median((exp(rwt.cpue)-adjust$rwt.adjust)),
+             mean = mean((exp(rwt.cpue)-adjust$rwt.adjust)),
+             sd = sd((exp(rwt.cpue)-adjust$rwt.adjust))) -> temp
+
+
+newd %>% 
+      group_by(year) %>% 
+      summarise('std cpue' = exp(fit1)-adjust$rwt.adjust) %>% 
+	left_join(temp) %>% 
+	dplyr::select(year, median, mean, sd, `std cpue`) %>% 
+	as.data.frame() -> temp
+	print(xtable(temp,align="llcccc",digits=c(0,0,1,1,1,1), caption="A table", label='table:t1'),
+			only.contents=TRUE, include.rownames=FALSE, floating=FALSE, include.colnames=FALSE, hline.after=NULL)
+
+@
+   \hline
+   \multicolumn{7}{l}{*Data from Wiki are different from older versions.}
+   \end{tabular}
+   \end{table}
+   
+\newpage   
+
+
+\subsection{District 16}
+\subsubsection{Fishery performance}
+
+\textbf{Biometric synopsis}: With such limited catch it is difficult to make any assessment. Assumed low abundance and things don't look good.  \\
+
+  The 2016/17 District 16 scallop fishery opened on July 1, 2016 with a GHL of 5,000 lb of scallop meat. One vessel particpated in the fishery harvesting 240 lb scallop meat with a cpue of 16 lb meat/dredge hour (Table \ref{table:d16t1}). No distinct trends in size of scallops are observed (scallops are not yet aged from the 2016/17 season), nor do the discard rates or meat retention / round weight diverge substantially from historic rates indicating that the trends are related to abundance. Harvest locations were restricted compared to previous years (Figure \ref{fig:map_yak}). 
+  
+
+\begin{table}[H]
+\centering
+\caption{District 16 catch summary (excludes Yakutat District).}
+
+\label{table:d16t1}
+   \begin{tabular}{lrrccccc}
+    	 &&  \multicolumn{2}{c}{Retained catch} & Dredge  & Number  & Meat wt  & Round wt\\ 
+	   		Year	&GHL&(lb meat)  & (lb round)              & hours   & hauls   & cpue$^a$ & cpue$^b$    \\ 
+\hline   1995	& 35,000 &   33,302	 &  447,469&	1,095 &	599 &	30& 409\\
+         1996	& 35,000 &	34,060	  & 422,064&	917   &	554 &	37& 460\\
+         1997/98	&35,000  &	22,890 &	265,882 &	561   &	105 &	41& 474\\
+         1998/99	& 35,000 &	34,153 &	384,286 &	702   &	449 &	49& 547\\
+         1999/00	& 35,000 &	34,624 &	292,625 &	674   &	299 &	51& 434\\
+         2000/01	& 35,000 &	30,904 &	310,370 &	476   &	359 &	65& 652\\
+         2001/02	& 35,000 &	20,398 &	245,319 &	417   &	291 &	49& 588\\
+         2002/03	& 35,000 &	3,685  & 60,928  &	100   &	244 &	37& 609\\
+         2003/04	& 35,000 &	1,072  & 16,780  &	18	   &  193 &	60& 932\\
+         2004/05	& 35,000 &	24,430 &	326,228 &	419   &	55	 & 58& 779\\
+         2005/06	& 35,000 &	13,650 &	209,487 &	407   &	12	 & 34& 515\\
+         2006/07	& 21,000 &	13,445 &	184,106 &	309   &	111 &	44& 595\\
+         2007/08	& 21,000 &	180    & 8,888	  &   14	   &  197 &	13& 635\\
+         2008/09	& 21,000 &	20,986 &	207,251 &	423   &	160 &	50& 490\\
+<<midtbl1,echo=FALSE,message=FALSE,warning=FALSE, results='asis'>>=		
+			print(xtable(dt1,align="llcrrcccc",digits=0),only.contents=TRUE, include.rownames=FALSE, 
+					floating=FALSE, include.colnames=FALSE, hline.after=NULL, format.args = list(big.mark = ","))
+@
+
+	\hline	
+	\multicolumn{3}{l}{$^a$lb scallop meat/dredge hour}\\
+	\multicolumn{3}{l}{$^b$lb scallop round/dredge hour}
+	\end{tabular} 
+\end{table}
+
+
+ \begin{table}[H]
+   \centering
+   \caption{District 16 catch summary (excludes Yakutat District) for the 2009/10-2016/17 season for raw and standardized meat weight data. Data in this table are from the Kodiak Wiki*}
+   \label{table:d162}
+   \vspace{1.5ex}
+   \begin{tabular}{lrrcrrc}
+   \hline
+   &\multicolumn{3}{c}{Raw cpue} & Standardized\\ 
+   Year	& median&	mean & sd	& cpue\\
+   \hline\\[-1.5ex]
+   
+  <<mwt_std_d16,echo=FALSE,message=FALSE,warning=FALSE, results="asis">>=
+xd %>% 
+	group_by(year) %>% 
+	summarise(median = median((exp(mwt.cpue)-adjust$mwt.adjust)),
+             mean = mean((exp(mwt.cpue)-adjust$mwt.adjust)),
+             sd = sd((exp(mwt.cpue)-adjust$mwt.adjust))) -> temp
+
+
+newd1 %>% 
+      group_by(year) %>% 
+      summarise('std cpue' = exp(fit)-adjust$mwt.adjust) %>% 
+	left_join(temp) %>% 
+	dplyr::select(year, median, mean, sd, `std cpue`) %>% 
+	as.data.frame() -> temp
+	print(xtable(temp,align="llcccc",digits=c(0,0,1,1,1,1), caption="A table", label='table:t1'),
+			only.contents=TRUE, include.rownames=FALSE, floating=FALSE, include.colnames=FALSE, hline.after=NULL)
+
+@
+   \hline
+   \multicolumn{7}{l}{*Data from Wiki are different from older versions.}
+   \end{tabular}
+   \end{table}
+   
+ \begin{table}[H]
+   \centering
+   \caption{District 16 catch summary (excludes Yakutat District) for the 2009/10-2016/17 season for raw and standardized round weight data. Data in this table are from the Kodiak Wiki*}
+   \label{table:d163}
+   \vspace{1.5ex}
+   \begin{tabular}{lrrcrrc}
+   \hline
+   &\multicolumn{3}{c}{Raw cpue} & Standardized\\ 
+   Year	& median&	mean & sd	& cpue\\
+   \hline\\[-1.5ex]
+   
+  <<rwt_std_d16,echo=FALSE,message=FALSE,warning=FALSE, results="asis">>=
+xd %>% 
+	group_by(year) %>% 
+	summarise(median = median((exp(rwt.cpue)-adjust$rwt.adjust)),
+             mean = mean((exp(rwt.cpue)-adjust$rwt.adjust)),
+             sd = sd((exp(rwt.cpue)-adjust$rwt.adjust))) -> temp
+
+
+newd1 %>% 
+		group_by(year) %>% 
+      summarise('std cpue' = exp(fit1)-adjust$rwt.adjust) %>% 
+	left_join(temp) %>% 
+	dplyr::select(year, median, mean, sd, `std cpue`) %>% 
+	as.data.frame() -> temp
+	print(xtable(temp,align="llcccc",digits=c(0,0,1,1,1,1), caption="A table", label='table:t1'),
+			only.contents=TRUE, include.rownames=FALSE, floating=FALSE, include.colnames=FALSE, hline.after=NULL)
+
+@
+   \hline
+   \multicolumn{7}{l}{*Data from Wiki are different from older versions.}
+   \end{tabular}
+   \end{table}
+   
+<<map_yak, fig.pos="H", fig.cap="Maps of Area D fishing locations by fishing year.", echo=FALSE, warning=FALSE ,fig.height=8, cache=FALSE, dev='png', dpi=200>>=
+f.district_map(yak)
+@
+
+<<yak_mwt_roll,echo=FALSE,fig.pos="H", fig.cap="Yakutat District annual raw and standardized meat weight CPUE with all years mean, a rolling 5-year average, and the past five years average.", warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, warning=FALSE,message=FALSE>>=
+xy %>% 
+	group_by(year) %>%
+	summarise(catch = sum(meat_weight, na.rm = T), round = sum(round_weight, na.rm = T),
+				 hrs = sum(dredge_hrs), haul = length(meat_weight), cpue = catch/hrs, cpue2 = round/hrs) -> yak.t1
+
+data.frame(year=1995:2016,cpue=c(51,60,61,58,65,46,43,50,48,41,39,54,48,46,yak.t1$cpue)) %>% 
+	mutate(mean=mean(cpue),
+			 five_year=c(rep(NA,4),rollmean(cpue,5,align='right')),
+			 last_five=c(rep(NA, length(cpue)-5), rep(mean(cpue[(length(cpue)-4):length(cpue)]),5))) %>% 
+	melt(., id.vars='year')  %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Raw CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.22),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> r1
+
+newd %>% 
+	mutate(fit = exp(fit)-adjust$mwt.adjust) %>% 
+	group_by(year) %>% 
+	summarise(std_cpue = mean(fit)) %>% 
+	mutate(mean=mean(std_cpue),
+		 five_year=c(rep(NA,4),rollmean(std_cpue,5,align='right')),
+		 last_five=c(rep(NA, length(std_cpue)-5), rep(mean(std_cpue[(length(std_cpue)-4):length(std_cpue)]),5))) %>% 
+	melt(., id.vars='year') %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Standardized CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('std_cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.82),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line'))+xlim(1995,2016) -> r2
+
+grid.arrange(r1,r2,ncol=2)
+@
+
+<<yak_rwt_roll,echo=FALSE,fig.pos="H", fig.cap="Yakutat District annual raw and standardized round weight CPUE with all years mean, a rolling 5-year average, and the past five years average.", warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, warning=FALSE,message=FALSE>>=
+raw <- data.frame(year=1995:2016,cpue=c(682,802,830,830,812,645,632,632,577,592,523,629,613,625,yak.t1$cpue2))%>% 
+	mutate(mean=mean(cpue),
+			 five_year=c(rep(NA,4),rollmeanr(cpue,5)),
+			 last_five=c(rep(NA, length(cpue)-5), rep(mean(cpue[(length(cpue)-4):length(cpue)]),5))) %>% 
+	melt(., id.vars='year')  %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Raw CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.15, 0.22),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> r1
+
+newd %>% 
+	mutate(fit1 = exp(fit1)-adjust$rwt.adjust) %>% 
+	group_by(year) %>% 
+	summarise(std_cpue = mean(fit1)) %>% 
+	mutate(mean=mean(std_cpue),
+			 five_year=c(rep(NA,4),rollmean(std_cpue,5,align='right')),
+			 last_five=c(rep(NA, length(std_cpue)-5), rep(mean(std_cpue[(length(std_cpue)-4):length(std_cpue)]),5))) %>% 
+	melt(., id.vars='year') %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Standardized CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('std_cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+	theme(legend.key = element_blank(),legend.position = c(0.15, 0.82),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line'))+xlim(1995,2016) -> r2
+grid.arrange(r1,r2,ncol=2)
+@
+
+<<d16_mwt_roll,echo=FALSE,fig.pos="H", fig.cap="District 16 annual raw and standardized meat weight CPUE with all years mean, a rolling 5-year average, and the past five years average.", warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, warning=FALSE,message=FALSE>>=
+xd %>% 
+	group_by(year) %>%
+	summarise(catch = sum(meat_weight, na.rm = T), round = sum(round_weight, na.rm = T),
+				 hrs = sum(dredge_hrs), haul = length(meat_weight), cpue = catch/hrs, cpue2 = round/hrs) -> yak.t1
+
+data.frame(year=1995:2016,cpue=c(30,37,41,49,51,65,49,37,60,58,34,44,13,50,yak.t1$cpue)) %>% 
+	mutate(mean=mean(cpue),
+			 five_year=c(rep(NA,4),rollmean(cpue,5,align='right')),
+			 last_five=c(rep(NA, length(cpue)-5), rep(mean(cpue[(length(cpue)-4):length(cpue)]),5))) %>% 
+	melt(., id.vars='year')  %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Raw CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.22),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> r1
+
+newd1 %>% 
+	mutate(fit = exp(fit)-adjust$mwt.adjust) %>% 
+	group_by(year) %>% 
+	summarise(std_cpue = mean(fit)) %>% 
+	mutate(mean=mean(std_cpue),
+		 five_year=c(rep(NA,4),rollmean(std_cpue,5,align='right')),
+		 last_five=c(rep(NA, length(std_cpue)-5), rep(mean(std_cpue[(length(std_cpue)-4):length(std_cpue)]),5))) %>% 
+	melt(., id.vars='year') %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Standardized CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('std_cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.82),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line'))+xlim(1995,2016) -> r2
+
+grid.arrange(r1,r2,ncol=2)
+@
+
+<<d16_rwt_roll,echo=FALSE,fig.pos="H", fig.cap="District 16 annual raw and standardized round weight CPUE with all years mean, a rolling 5-year average, and the past five years average.", warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, warning=FALSE,message=FALSE>>=
+raw <- data.frame(year=1995:2016,cpue=c(409,460,474,547,434,652,588,609,932,779,515,595,635,490,yak.t1$cpue2))%>% 
+	mutate(mean=mean(cpue),
+			 five_year=c(rep(NA,4),rollmeanr(cpue,5)),
+			 last_five=c(rep(NA, length(cpue)-5), rep(mean(cpue[(length(cpue)-4):length(cpue)]),5))) %>% 
+	melt(., id.vars='year')  %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Raw CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.15, 0.22),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> r1
+
+newd1 %>% 
+	mutate(fit1 = exp(fit1)-adjust$rwt.adjust) %>% 
+	group_by(year) %>% 
+	summarise(std_cpue = mean(fit1)) %>% 
+	mutate(mean=mean(std_cpue),
+			 five_year=c(rep(NA,4),rollmean(std_cpue,5,align='right')),
+			 last_five=c(rep(NA, length(std_cpue)-5), rep(mean(std_cpue[(length(std_cpue)-4):length(std_cpue)]),5))) %>% 
+	melt(., id.vars='year') %>% 
+	ggplot(aes(year, value, color=variable))+geom_point()+geom_line()+ylab('Standardized CPUE')+xlab('Year')+
+	scale_color_manual(values=c('#31a354','black','#f03b20','#3182bd'),  
+							 breaks=c('std_cpue','mean', 'five_year','last_five'), name='Measure')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+	theme(legend.key = element_blank(),legend.position = c(0.15, 0.82),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line'))+xlim(1995,2016) -> r2
+grid.arrange(r1,r2,ncol=2)
+@
+
+<<yakcpue, fig.pos="H", fig.cap="Density and number of tows by bed and year for Area D raw meat weight cpue. The left pane shows the CPUE distribution for all of the hauls, the right pane shows the number of hauls for a given CPUE.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=  
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(mwt.cpue,fill=Year,color=Year))+geom_density()+facet_grid(Bed~., scales='free_y')+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> m1
+
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(mwt.cpue,fill=Year,color=Year))+geom_histogram()+facet_grid(Bed~.)+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank()) -> m2
+grid.arrange(m1,m2,ncol=2)
+@
+
+<<yakfit, fig.pos="H", fig.cap="Density and number of tows by bed and year for Area D standardized meat weight cpue. The left pane shows the CPUE distribution for all of the hauls, the right pane shows the number of hauls for a given CPUE.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(fit,fill=Year,color=Year))+geom_density()+facet_grid(Bed~., scales='free_y')+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> m1
+
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(fit,fill=Year,color=Year))+geom_histogram()+facet_grid(Bed~.)+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank()) -> m2
+grid.arrange(m1,m2,ncol=2)
+@
+
+<<yakcpue1, fig.pos="H", fig.cap="Density and number of tows by bed and year for Area D raw round weight cpue. The left pane shows the CPUE distribution for all of the hauls, the right pane shows the number of hauls for a given CPUE.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=  
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(rwt.cpue,fill=Year,color=Year))+geom_density()+facet_grid(Bed~., scales='free_y')+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> m1
+
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(rwt.cpue,fill=Year,color=Year))+geom_histogram()+facet_grid(Bed~.)+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank()) -> m2
+grid.arrange(m1,m2,ncol=2)
+@
+
+<<yakfit1, fig.pos="H", fig.cap="Density and number of tows by bed and year for Area D standardized round weight cpue. The left pane shows the CPUE distribution for all of the hauls, the right pane shows the number of hauls for a given CPUE.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(fit1,fill=Year,color=Year))+geom_density()+facet_grid(Bed~., scales='free_y')+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> m1
+
+x %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(fit1,fill=Year,color=Year))+geom_histogram()+facet_grid(Bed~.)+xlab('log(cpue)')+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank()) -> m2
+grid.arrange(m1,m2,ncol=2)
+@
+
+<<yakvessel, fig.pos="H", fig.cap="Annual vessel effect from meat weight cpue model fit for Area D.",echo=FALSE, warning=FALSE ,fig.height=3.9, cache=FALSE,dev='png',dpi=300, message = FALSE>>=
+
+      ggplot(x, aes(Year,fit, fill=Vessel))+geom_boxplot(width=.35)+ylab('Standardized CPUE')
+@
+   
+<<yakvessel1, fig.pos="H", fig.cap="Annual vessel effect from round weight cpue model fit for Area D.",echo=FALSE, warning=FALSE ,fig.height=3.9, cache=FALSE,dev='png',dpi=300, message = FALSE>>=
+
+      ggplot(x, aes(Year,fit1, fill=Vessel))+geom_boxplot(width=.35)+ylab('Standardized CPUE')
+@
+
+\subsubsection{Size and age structure of catch}
+
+<<yaYAK, fig.pos="H", fig.cap="Shell heights by bed and year for Area D. The left pane shows the distribution of all of the samples, the right pane shows the number of samples by year (stacked bars).",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>= 
+yak.sh <- merge(yak,sh,by=c('Fishery', 'District','Haul_ID','ADFG'))
+                                  
+#SH by year
+yak.sh %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(Shell_Height, fill=Year,color=Year))+geom_density()+facet_grid(Bed~.)+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+	theme(legend.key = element_blank(),legend.position = c(0.15, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) + 
+	xlab('Shell height (mm)')+ ylab('Density')-> s1
+
+yak.sh %>% 
+	filter(year>2011) %>% 
+	ggplot(aes(Shell_Height, fill=Year,color=Year))+geom_histogram()+facet_grid(Bed~.)+
+	scale_fill_manual(values=values,breaks=breaks, name='Year')+
+	scale_color_manual(values=values,breaks=breaks, name='Year')+
+	guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank())+
+	xlab('Shell height (mm)')+ ylab('Count') -> s2
+grid.arrange(s1,s2,ncol=2)
+@
+
+<<yaYAK1, fig.pos="H", fig.cap="Retained and discarded shell heights by bed for Area D in 2016. The left pane shows the distribution for all of the samples, the right pane shows the number samples (stacked bars).",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=
+yak.sh %>% 
+	filter(year==2016) %>% 
+	ggplot(aes(Shell_Height, fill=Rtnd_Disc,color=Rtnd_Disc))+geom_density(alpha=.2)+facet_grid(Bed~.)+
+	scale_color_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	scale_fill_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.75),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) -> s1
+yak.sh %>% 
+	filter(year==2016) %>% 
+	ggplot(aes(Shell_Height, fill=Rtnd_Disc,color=Rtnd_Disc))+geom_histogram(alpha=.2)+facet_grid(Bed~.)+
+	scale_color_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	scale_fill_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank()) -> s2
+grid.arrange(s1,s2,ncol=2)
+@
+
+<<yaYAK3, fig.pos="H", fig.cap="Shell heights by fishery season, all beds combined, for Area D. The left pane shows the distribution for all of the samples, the right pane shows the number of samples.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE,dev='png', dpi=300, message = FALSE>>=
+
+yak.sh %>% 
+	ggplot(aes(Shell_Height, fill=Rtnd_Disc,color=Rtnd_Disc))+geom_density(alpha=.2)+
+	facet_grid(FY~.)+
+	scale_color_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	scale_fill_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+ 
+	theme(legend.key = element_blank(),legend.position = c(0.2, 0.25),legend.background = 
+				element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line')) + 
+	xlab('Shell height (mm)') + ylab('Density') -> s1
+
+yak.sh %>% 
+	ggplot(aes(Shell_Height, fill=Rtnd_Disc,color=Rtnd_Disc))+geom_histogram(alpha=.2)+facet_grid(FY~.)+
+	scale_color_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	scale_fill_manual( values=c('D'='#e41a1c','R'='#377eb8'), labels=c('discard', 'retain'),name='')+
+	guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank())+xlab('Shell height (mm)') + ylab('Count') -> s2
+grid.arrange(s1,s2,ncol=2)
+@
+
+
+<<yakage, fig.pos="H", fig.cap="Shell ages (annuli) by bed and year for Area D. The left pane shows the  distribution for all of the annuli sampled, the right pane shows the number of samples.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message = FALSE>>=   
+ yak %>% 
+   	select(Haul_ID, Bed) %>% 
+   	left_join(ages) %>% 
+   	filter(year>2009) -> yak.age
+
+   a1 <- ggplot(yak.age, aes(annuli, fill=Year, color=Year))+geom_density()+facet_grid(Bed~.)+
+      scale_fill_manual(values=values, breaks=breaks, name='Year')+
+      scale_color_manual(values=values,  breaks=breaks, name='Year')+
+      guides(colour = guide_legend(override.aes = list(alpha = 1)))+ 
+      theme(legend.key = element_blank(),legend.position = c(0.8, 0.39),legend.background = 
+               element_rect(fill = "#ffffffaa", colour = NA),legend.key.height=unit(.6,'line'))
+   a2 <- ggplot(yak.age, aes(annuli, fill=Year, color=Year))+geom_histogram(binwidth=1)+facet_grid(Bed~.)+
+      scale_fill_manual(values=values, breaks=breaks, name='Year')+
+      scale_color_manual(values=values,  breaks=breaks, name='Year')+
+      guides(colour = guide_legend(override.aes = list(alpha = 1)))+
+      guides( fill=FALSE, color=FALSE)+ theme(legend.key = element_blank())
+   
+   grid.arrange(a1,a2,ncol=2)
+@
+
+<<allageyak, fig.pos="H", fig.cap="Scallop ages for Area D.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message=FALSE>>=
+ages %>% 
+   filter(District=='YAK') %>% 
+ggplot(., aes( annuli))+geom_histogram(binwidth=1)+facet_grid(Year~.)
+@
+
+ \subsubsection{Scallop discards and crab/halibut bycatch}
+ 
+ There are no tanner or king crab bycatch limits for Area D. An estimated 253,800 lb of scallops were discarded in the Yakutat District, 16.3\% of retained round weight. These numbers are in line with what has been observed since 2009. An estimated 48,286 lb of scallops were discarded from D16, 3.11\% of the retained round weight. These numbers are low when compared to previous years.
+
+<<yakdisc, fig.pos="H", fig.cap="Scallop estimated discard weight for Yakutat District.",echo=FALSE, warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, eval=TRUE, message = FALSE>>=   
+    by %>% 
+      filter(District=='YAK') %>% 
+      group_by(year) %>% 
+      summarise(sample.hrs = sum(Sample_Hrs), disc = sum(Discard_Weight ), broken = sum(Broken_Weight),
+                rem.disc = sum(Rem_Disc_Wt), wt = sum(disc, broken, rem.disc) ) -> a
+   yak %>% 
+      group_by(year) %>% 
+      summarise(dredge.hrs = sum(dredge_hrs), round.wt = sum(round_weight)) -> b
+   
+   discards <- left_join(a,b)
+   
+   discards %>% 
+      mutate(disc= wt/sample.hrs*dredge.hrs, per = disc/round.wt*100)  %>% 
+   ggplot(aes(year, disc))+geom_line()+geom_point(size=3)+ylab('Scallop discard weight (lbs)')
+@
+
+
+<<yakdisc1, fig.pos="H", fig.cap="Scallop estimated percent discards relative to retained round weight for Yakutat District.",echo=FALSE, warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, eval=TRUE, message = FALSE, png=TRUE, pdf=FALSE>>= 
+   discards %>% 
+      mutate(disc_ratio= wt/sample.hrs*dredge.hrs, per = disc_ratio/round.wt*100)  %>% 
+   ggplot(aes(year, per))+geom_line()+geom_point(size=3)+ylab('Estimated scallop % discards relative to round weight')
+@  
+
+
+<<d16disc, fig.pos="H", fig.cap="Scallop estimated discard weight for District 16.",echo=FALSE, warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, eval=TRUE, message = FALSE>>=   
+    by %>% 
+      filter(District=='D16') %>% 
+      group_by(year) %>% 
+      summarise(sample.hrs = sum(Sample_Hrs), disc = sum(Discard_Weight ), broken = sum(Broken_Weight),
+                rem.disc = sum(Rem_Disc_Wt), wt = sum(disc, broken, rem.disc) ) -> a
+   yak %>% 
+      group_by(year) %>% 
+      summarise(dredge.hrs = sum(dredge_hrs), round.wt = sum(round_weight)) -> b
+   
+   discards <- left_join(a,b)
+   
+   discards %>% 
+      mutate(disc= wt/sample.hrs*dredge.hrs, per = disc/round.wt*100)  %>% 
+   ggplot(aes(year, disc))+geom_line()+geom_point(size=3)+ylab('Scallop discard weight (lbs)')
+@
+
+<<d16disc1, fig.pos="H", fig.cap="Scallop estimated percent discards relative to retained round weight for District 16.",echo=FALSE, warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, eval=TRUE, message = FALSE, png=TRUE, pdf=FALSE>>= 
+   discards %>% 
+      mutate(disc_ratio= wt/sample.hrs*dredge.hrs, per = disc_ratio/round.wt*100)  %>% 
+   ggplot(aes(year, per))+geom_line()+geom_point(size=3)+ylab('Estimated scallop % discards relative to round weight')
+@  

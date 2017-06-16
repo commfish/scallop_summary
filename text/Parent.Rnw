@@ -1,0 +1,160 @@
+\documentclass{article}
+\usepackage{color}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage[left=1.00in, right=1.00in, top=1.00in, bottom=1.00in]{geometry}
+\usepackage[]{authblk}
+\pretolerance=99999 
+\author{Prepared by:\\ Ben Williams\\
+   \href{mailto:ben.williams@alaska.gov}{ben.williams@alaska.gov} }
+\affil{Alaska Department of Fish \& Game\\
+   1255 W 8th Street\\
+   Juneau, AK 99811-5526}
+\title{DRAFT Scallop Observer Data Summary}
+
+\begin{document}
+   \maketitle
+   \tableofcontents
+\listoftables
+\listoffigures
+
+
+\section{Background}
+This report summarizes weathervane scallop \textit{Patinopecten caurinus} fishery data for data collected by the onboard observer program during the 2015/16 season. 
+The information is provided by the scallop observer program to aid ADF\&G Southeast Region staff in setting guideline harvest levels (GHLs) for the 2016/17 scallop season scheduled to begin July 1. 
+Although scallop vessel operators sign waivers that allow ADF\&G to publish data collected by the onboard observer program, material included in this report such as individual vessel fishing locations, catches, and catch rates are \textit{\color{red}{Confidential}} and should not be released to the public.
+
+Amendment 3 to the Fishery Management Plan for the Scallop Fishery off Alaska (FMP) delegated authority to manage all aspects of the federal waters scallop fishery except limited access to the State of Alaska. 
+ADF\&G sets GHLs prior to each season, opens and closes scallop fishing areas and districts, oversees the onboard observer program, monitors scallop fishery catch and bycatch inseason, summarizes scallop management activities in department publications, and participates in the federal management process through the North Pacific Fishery Management Council (NPFMC) and Scallop Plan Team (SPT).
+
+Amendment of the weathervane scallop FMP to incorporate Annual Catch Limits (ACLs) required by the 2006 reauthorization of the Magnuson-Stevens Act redefined the statewide overfishing level (OFL) from 1.24 million lb to 1.29 million lb of shucked scallop meats. 
+The change was made to account for all sources of fishing mortality including harvest, discarded scallop catch in the directed fishery, bycatch in other fisheries, and survey catches. 
+The annual ACL will equal 90\% of OFL, or 1.161 million lb of shucked meats, subject to annual approval by the NPFMC. 
+For the ACL amendment analysis leading to the new OFL definition, mortality of scallops discarded in the fishery was assumed to be 20\%, and meat recovery was set at 10\% of scallop round weight.
+
+The state's vessel-based limited entry program for the state-waters scallop fishery sunsetted on December 31, 2013.
+Subsequently, the Alaska Board of Fisheries (BOF) passed a new state waters scallop fishery management plan (FMP).
+Details on the  BOF action are available at
+
+\url{http://www.adfg.alaska.gov/index.cfm?adfg=fisheriesboard.meetinginfo&date=01-07-2014&meeting=kodiak}.
+
+
+Estimates of scallop abundance from fishery-independent surveys are available for the Kodiak Shelikof District in 2016 and 2017, the Prince William Sound District in 2016. Survey data is currently being collected and/or analyzed for Area D and Kodiak Northeast District.
+
+ADF\&G managers rely on data collected by the onboard scallop observer program including logbook data on fishing locations, catch, effort, catch-per-unit-effort (cpue), and bycatch. 
+Inseason cpue and bycatch data from onboard observers may also be used in making scallop management decisions such as time/area closures. 
+Summaries of inseason data (when fishing is open) as well as edited observer data summaries from the 2009/10-2014/15 seasons are available inside the ADF\&G firewall at
+
+\url{http://kodweb.fishgame.state.ak.us/index/Data_Access:Scallop_Observer:}.
+
+\section{Problems with cpue data}
+
+The use of cpue as an index of abundance is based upon a fundamental relationship in fisheries analysis
+
+\begin{equation}
+C_t/E_t=qN_t,
+\end{equation}
+
+where $C_t$ is catch at time $t$, $E_t$ is the effort expended at time $t$, $N_t$ is abundance at time $t$, and $q$ is the portion of the stock captured by one unit of effort (catchability coefficient). Provided $q$ is constant over time, cpue is proportional to abundance. It is rare that $q$ is constant over the entire exploitation history. 
+
+Fishery statistics presented in this report are affected by many factors. 
+In particular, these data are influenced by the spatial structure of the Alaska scallop population and non-random allocation of fishing effort.
+Scallop cpue is affected by each vessel's choice of fishing locations as well as weather, currents, sea state, captain and crew performance, gear tuning, processing capacity, markets etc. 
+Scallop shell height distributions from observer sampling are likewise affected by fishing locations and discarding as well as by the 4" diameter rings required by Alaska regulations that retain small scallops with lower efficiency than large scallops. 
+
+Standardizing cpue (controlling for variables that affect catch aside from population abundance) is difficult, though standardized data are presented in some sections of this document. \textit{This standardization is a cursory effort and needs to be fully evaluated}.
+
+Standardization was done with generalized additive models (GAMs) generally of form:
+
+\begin{equation}
+log(cpue)=f_1(depth)+f_2(lon,lat)+f_3(bed)+f_4(vessel_j) + year_i+\epsilon_{ij},
+\end{equation}
+
+where $f_i$ are smoothing functions, year is a categorical variable, bed and vessel are incorporated as a random effects.
+ 
+
+\section{Data sources and updates}
+   \subsection{Data}
+The scallop catch by haul data used in this document originate from the Kodiak Wiki in the ``Finalized Observer Data Reports" \url{http://kodweb.fishgame.state.ak.us/apps/scalobs/catchbyhaul/index}. All available data from this location (e.g., shell height, bycatch, crab sizes, scallop observer data) have been included. Age data were provided by Ryan Burt (ryan.burt@alaska.gov). 
+
+Keep in mind when comparing the cpue over different years the changes in spatial sampling (Figure~\ref{fig:akmap}).
+
+ \subsection{Analysis updates/changes}
+Catch per unit of effort is calculated as retained shelled meat weight/hours dredged (cpue). 
+This is the same as it has been reported in previous summaries. This should be examined to reflect that there are different trawl configurations (e.g., size, number, etc.) and the speed that a trawl is fished, therefore an evaluation by time is not the best descriptor of effort and area-based estimates of cpue should be more precise. \emph{Unfortunately while exploring these data it is obvious that a number of values are ``generalized", that is they are rounded, something that may add up to a substantial bias. It would be good to work with the fleet and observer program to try and generate more accurate values (i.e., actual dredge times, not 20 min, 30 min, etc.)}. I've adjusted the cpue estimates with a multiplier of 10\% of the mean cpue  following methods in Campbell (2004) and log transformed. The transformed cpue distribution meets the assumption of normality, non-transformed data do not.
+
+Since prevous year's management has been heavily reliant on meat-weight CPUE it has been included for examination in 2017.. However, round-weight CPUE is likely to be more proportionally related to the total number of scallops caught (exploitation rate) than meat-weight. Therefore CPUE analyses in this document have been duplicated for round-weight.
+
+<<loadp,echo=FALSE,message=FALSE,warning=FALSE, eval = FALSE>>=
+opts_knit$set(self.contained=FALSE)
+#load inputs
+library(tidyverse)
+library(mgcv)
+library(maps)
+library(mapdata)
+library(zoo)
+library(reshape2)
+library(gridExtra)
+library(extrafont)
+loadfonts(device="win")
+theme_set(theme_bw(base_size=11, base_family='Times New Roman')+
+			 	theme(panel.grid.major = element_blank(), 
+			 			panel.grid.minor = element_blank(),
+			 			strip.background = element_blank())) #,base_family='Times New Roman'
+library(lubridate)
+library(xtable)
+
+@
+
+<<akmapp, fig.pos="H", fig.cap="Map of all scallop dredge hauls. Top pane shows fishing locations from the 2009/10-2015/16 fishing season. Bottom pane shows fishing locations from the 2015/16 fishing season.",echo=FALSE, warning=FALSE ,fig.height=8, cache=TRUE,dev='png', dpi=300, eval=FALSE>>=
+
+scallops <- read.csv("../data/scallops.csv")
+
+ak <- map_data('worldHires', c('USA:Alaska','Canada'))
+
+source('functions.R')
+
+ak1 <- f.global_map(scallops)
+
+ak2 <- f.global_map_year(scallops)
+
+grid.arrange(ak1,ak2,ncol=1)
+@
+
+
+<<cpuep, fig.pos="H", fig.cap="Log transformed cpue (weight/dredge hrs) by round weight and meat weight.",echo=FALSE, warning=FALSE ,fig.height=4, cache=TRUE,dev='png', dpi=300, message=FALSE, eval = FALSE>>=
+#log transform cpue data
+#look for normality in cpue data
+h1 <- ggplot(scallops,aes(rwt.cpue))+geom_histogram(alpha=.5,color='black')+xlab('Round weight CPUE')
+#h2 <- ggplot(scallop,aes(rwa.cpue))+geom_histogram(alpha=.5,color='black')+xlab('Round weight CPUE')
+h3 <- ggplot(scallops,aes(mwt.cpue))+geom_histogram(alpha=.5,color='black')+xlab('Meat weight CPUE')
+#h4 <- ggplot(scallop,aes(mwa.cpue))+geom_histogram(alpha=.5,color='black')+xlab('Round weight CPUE')
+grid.arrange(h1,h3,ncol=2)
+@
+
+\section{Area D}
+<<child='D_Area.Rnw', eval=TRUE>>=
+@
+\section{Area E}
+<<child='E_Area.Rnw', eval=TRUE>>=
+@
+\section{Area K}
+<<child='KNE_District.Rnw', eval=TRUE>>=
+@
+
+<<child='KSH_District.rnw',eval=TRUE>>=
+@
+
+<<child='KSW_District.Rnw',eval=TRUE>>=
+@
+
+\section{Area M}
+<<child='M_Area.Rnw', eval=TRUE>>=
+@
+\section{Area O}
+<<child='O_Area.Rnw', eval=TRUE>>=
+@
+\section{Area Q}
+<<child='Q_Area.Rnw', eval=TRUE>>=
+@
+\end{document}
