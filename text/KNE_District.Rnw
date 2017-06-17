@@ -28,7 +28,7 @@ values <- c('2016'='#2b8cbebb','2015'='#54278840','2014'='#998ec340',
 				'2010'='#b3580640', '2009'=1) 
 breaks <- c('2016','2015','2014','2013','2012','2011','2010','2009')
 
-kne <- read_csv('../data/kne.csv')
+kne <- read_csv('../output/kne.csv')
 kne %>% 
 	mutate(Year=factor(Year),
 		 Vessel = factor(Vessel),
@@ -36,16 +36,16 @@ kne %>%
 		 Bed = factor(Bed),
 		 dum=1) -> kne
 
-sh <- read_csv('../data/sh.csv')
+sh <- read_csv('../output/sh.csv')
 
-by <- read.csv("../data/by.csv")
+by <- read.csv("../output/by.csv")
       by %>%
       mutate(set_date = as.Date(Set_Date, "%m-%d-%Y"),
              date = yday(set_date),
              Year = factor(year),
              Vessel = factor(ADFG)) -> by
       
-ages <- read.csv("../data/ages.csv")
+ages <- read.csv("../output/ages.csv")
    ages %>%
       mutate(set_date = as.Date(set_date, "%Y-%m-%d"),
              date = yday(set_date),
@@ -53,9 +53,9 @@ ages <- read.csv("../data/ages.csv")
              Vessel = factor(ADFG),
              annuli = ifelse(annuli>19, 20, annuli)) -> ages
    
-adjust <- read.csv("../data/adjust.csv")   
+adjust <- read.csv("../output/adjust.csv")   
    
-source('functions.R')
+source('../code/functions.R')
 
 x <- kne %>% 
 	filter(complete.cases(.), mw.cpue.t>0)
@@ -199,7 +199,7 @@ newd %>%
    
    
 <<map_kne, fig.pos="H", fig.cap="Maps of District KNE fishing locations by fishing year.", echo=FALSE, warning=FALSE ,fig.height=8, cache=TRUE, dev='png', dpi=200>>=
-f.district_map(x)
+f.district_map(kne)
 @
 
 <<kne_mwt_roll,echo=FALSE,fig.pos="H", fig.cap="Annual raw and standardized meat weight CPUE with all years mean, a rolling 5-year mean, and the past five years mean.", warning=FALSE ,fig.height=4, cache=FALSE, dev='png', dpi=300, warning=FALSE,message=FALSE>>=
@@ -500,7 +500,7 @@ ggplot(., aes( annuli))+geom_histogram(binwidth=1)+facet_grid(Year~.)
    ggplot(aes(year, per))+geom_line()+geom_point(size=3)+ylab('Estimated scallop % discards relative to round weight')
 @  
 
-<<clapper_kne, eval=F>>=
+<<clapper_kne, eval=F, echo=F>>=
 
 by %>% filter(District=='KNE') -> qsamp
 
