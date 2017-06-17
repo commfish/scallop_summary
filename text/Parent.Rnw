@@ -10,7 +10,7 @@
 \affil{Alaska Department of Fish \& Game\\
    1255 W 8th Street\\
    Juneau, AK 99811-5526}
-\title{DRAFT Scallop Observer Data Summary}
+\title{2017 Scallop Observer Data Summary}
 
 \begin{document}
    \maketitle
