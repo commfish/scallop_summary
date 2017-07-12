@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.tex
+*.log
+*.gz
+*.pdf
+*.lof
+*.lot
+*.png
+*.toc
+
