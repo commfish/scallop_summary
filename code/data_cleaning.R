@@ -80,7 +80,9 @@ write_csv(scallops, "output/scallops.csv")
 
 
 
-##################################################
+# Commented out the earlier scallop data - there are some likley changes that need to be addressed
+
+
 # early.scallops <- read_csv("data/old.catch/ScallopCatchByHaul_1996-2008.csv")
 # names(early.scallops) <- c("Fishery", "District", "ADFG", "Trip_ID", "Haul_ID",
 # 									"Haul", "Bed_Code", "Gear_Perf", "Haul_Sampled", 
