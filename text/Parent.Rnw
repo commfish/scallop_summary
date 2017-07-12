@@ -11,7 +11,7 @@
    1255 W 8th Street\\
    Juneau, AK 99811-5526}
 \title{2017 Scallop Observer Data Summary}
-
+\date{2017-06-20}
 \begin{document}
    \maketitle
    \tableofcontents

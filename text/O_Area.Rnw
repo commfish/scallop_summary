@@ -60,12 +60,12 @@ adjust <- read.csv("../output/adjust.csv")
 source('../code/functions.R')
 
 x <- o %>% 
-	filter(complete.cases(.))
+	filter(mwt.cpue>0)
 
 o %>% 
 	group_by(FY) %>% 
 	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> ot1
-mghl = data.frame(ghl=c(50000,10000,10000,10000,5000,5000,5000, 5000))
+mghl = data.frame(ghl=c(10000,10000,10000,10000,10000,10000,10000, 10000))
 
 ot1 <- bind_cols(mghl,ot1) %>% 
 	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
@@ -77,7 +77,7 @@ ot1 <- bind_cols(mghl,ot1) %>%
 
 \textbf{Biometric synopsis}: Slight stabilization in numbers, population structure looks ok. 
 
-  The 2016/17 Area O scallop fishery opened on July 1, 2016 with a GHL of 5,000 lb of scallop meat. One vessel participated in the fishery (Figure \ref{fig:ovessel}) harvesting 5,050 lb scallop meat with a cpue of 53 lb meat/dredge hour (Table \ref{table:ot1}).
+  The 2016/17 Area O scallop fishery opened on July 1, 2016 with a GHL of 5,000 lb of scallop meat. One vessel participated in the fishery (Figure \ref{fig:ovessel}) harvesting 5,050 lb scallop meat with a cpue of 48 lb meat/dredge hour (Table \ref{table:ot1}).
   
    \begin{table}[H]
    \centering
@@ -119,13 +119,15 @@ $$cpue = f_1(depth) + f_2(long,lat) + f_3(bed) + year + vessel$$
 where $fs$ are smoothers, bed and vessel are brought in as a random effects, year is a factor. For prediction purposes the depth and locations are held at their median values and the random effect is ignored, depth = 48, longitude = -168.4985, latitude = 53.33425 Note that this standardization differs from last year in that values are now point estimates based upon a ``generic" bed and vessel at a given depth and location, to be more inline with managing as a district (as opposed to per bed).
 
 <<model_o,echo=FALSE,message=FALSE,warning=FALSE>>=
-	fit <- bam(mwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Bed, bs='re', by=dum) + s(Vessel, bs='re', by=dum), data=x, gamma=1.4)
+
+# model doesn't work on mwt.cpue - so used non-transformed data for Area O
+	fit <- bam(mw.cpue.t~ s(depth, k=4) +te(set_lon, set_lat) + Year + s(Bed, bs='re', by=dum)+ s(Vessel, bs='re', by=dum), data=x, gamma=1.4)
 	fit1 <-bam(rwt.cpue~s(depth, k=4) + te(set_lon, set_lat) + Year + s(Bed, bs='re', by=dum) + s(Vessel, bs='re', by=dum), data=x, gamma=1.4)
 	
 	x$fit <- predict(fit, x, type='response')
 	x$fit1 <- predict(fit1, x, type='response')
-#x %>% filter(bed==4) %>% summarise(depth=median(depth), long=median(set_lon), lat = median(set_lat))
-	newd <- expand.grid(Vessel = '303', dum=0, year = unique(x$year), Bed='1',
+#x %>% filter(bed==4) %>% summarise(depth=median(depth, na.rm=T), long=median(set_lon), lat = median(set_lat))
+	newd <- expand.grid(Vessel = '303', dum=0, year = unique(o$year), Bed='1',
 								depth = 48, set_lon = -168.4993, set_lat = 53.3331)
 	newd$Year <- factor(newd$year)
 
@@ -154,10 +156,8 @@ x %>%
 
 
 newd %>% 
-      group_by(year) %>% 
-      summarise('std cpue' = exp(fit)-adjust$mwt.adjust) %>% 
 	left_join(temp) %>% 
-	dplyr::select(year, median, mean, sd, `std cpue`) %>% 
+	dplyr::select(year, median, mean, sd, `std cpue`=fit) %>% 
 	as.data.frame() -> temp
 	print(xtable(temp,align="llcccc",digits=c(0,0,1,1,1,1), caption="A table", label='table:t1'),
 			only.contents=TRUE, include.rownames=FALSE, floating=FALSE, include.colnames=FALSE, hline.after=NULL)

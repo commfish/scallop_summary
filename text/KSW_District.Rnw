@@ -434,7 +434,7 @@ grid.arrange(s1,s2,ncol=2)
    grid.arrange(a1,a2,ncol=2)
 @
 
-<<allageksw, fig.pos="H", fig.cap="Scallop ages for Kodiak Shelikof District beds.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message=FALSE>>=
+<<allageksw, fig.pos="H", fig.cap="Scallop ages for Kodiak Southwest District beds.",echo=FALSE, warning=FALSE ,fig.height=8.5, cache=FALSE, dev='png', dpi=300, message=FALSE>>=
 ages %>% 
    filter(District=='KSW') %>% 
 ggplot(., aes( annuli))+geom_histogram(binwidth=1)+facet_grid(Year~.)

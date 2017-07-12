@@ -57,6 +57,14 @@ adjust <- read.csv("../output/adjust.csv")
    
 source('../code/functions.R')
 
+kne %>% 
+	group_by(FY) %>% 
+	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> knet1
+kneghl = data.frame(ghl=c(75000,65000,70000,60000,55000,55000,55000, 55000))
+
+knet1 <- bind_cols(kneghl,knet1) %>% 
+	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
+
 x <- kne %>% 
 	filter(complete.cases(.), mw.cpue.t>0)
 @
@@ -93,14 +101,10 @@ x <- kne %>%
 	   		2006/07 & 	90,000 & 	74,902 & 	703,388 & 	1,168 & 	688 & 64 & 	602\\
 	   		2007/08 & 	90,000 & 	73,276 & 	822,697 & 	1,170 & 	671 & 63 & 	703\\
 	   		2008/09 & 	90,000 & 	75,030 & 	808,277 & 	1,356 & 	793 & 55 & 	596\\
-	   		2009/10 & 	75,000 & 	 69,410 &  	 831,709 & 	1,222 & 	625 & 57 & 	681\\
-	   		2010/11 & 	65,000 & 	 64,442 &  	 671,928 & 	1,014 & 	617 & 64 & 	663\\
-	   		2011/12 & 	70,000 & 	 60,939 &  	 663,927 & 	980	&  693 & 62 & 	678\\
-	   		2012/13 & 	60,000 & 	 62,360 &  	 748,055 & 	1,316 & 	932 & 47 & 	568\\
-	   		2013/14 & 	55,000 & 	 54,713 &  	 524,124 & 	931	&  679 & 59 & 	563\\
-	   		2014/15 & 	55,000 & 	 55,582 &  	 667,123 & 	751	&  443 & 74 & 	888\\
-	   		2015/16 & 	55,000 & 	 55,577 &  	 568,543 & 	1,228 & 	768 & 45 & 	463\\
-	   		2016/17 & 	55,000 & 	 24,401 & 	 196,939 &  1,095 &  682 & 22 & 180\\
+<<midtblkne,echo=FALSE,message=FALSE,warning=FALSE, results='asis'>>=		
+			print(xtable(knet1,align="llcrrcccc",digits=0),only.contents=TRUE, include.rownames=FALSE, 
+					floating=FALSE, include.colnames=FALSE, hline.after=NULL, format.args = list(big.mark = ","))
+@
 	   		\hline	
 	   		\multicolumn{3}{l}{$^a$lb scallop meat/dredge hour}	\\
 	   		\multicolumn{3}{l}{$^b$lb scallop round/dredge hour}\\

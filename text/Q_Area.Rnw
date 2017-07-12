@@ -62,7 +62,7 @@ x <- q %>%
 x %>% 
 	group_by(FY) %>% 
 	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> qt1
-mghl = data.frame(ghl=c(rep(50000,5),15000,7500,7500))
+mghl = data.frame(ghl=c(rep(50000,6),7500,7500))
 
 qt1 <- bind_cols(mghl,qt1) %>% 
 	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
@@ -82,7 +82,7 @@ qt1 <- bind_cols(mghl,qt1) %>%
    
    \label{table:qt1}
     	\begin{tabular}{lcrrcccc}
-  		&&  \multicolumn{2}{c}{Retained catch} & Dredge  & Numer  & Meat wt  & Round wt\\ 
+  		&&  \multicolumn{2}{c}{Retained catch} & Dredge  & Number  & Meat wt  & Round wt\\ 
   		Year	&GHL&(lb meat)  & (lb round)              & hours   & hauls   & cpue$^a$ & cpue$^b$    \\ 
   		\hline	
   			1993/94&					&	284,414	&				&		5,764	&		3,326	& 49 &\\

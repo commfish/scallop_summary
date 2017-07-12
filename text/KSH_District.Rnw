@@ -58,8 +58,16 @@ adjust <- read.csv("../output/adjust.csv")
    
 source('../code/functions.R')
 
+ksh %>% 
+	group_by(FY) %>% 
+	summarise(m=sum(meat_weight), r = sum(round_weight), h = sum(dredge_hrs), n=length(dredge_hrs), c1 = m/h, c2 = r/h) -> ksht1
+kshghl = data.frame(ghl=c(170000,170000,170000,135000,105000,105000,75000, 25000))
+
+ksht1 <- bind_cols(kshghl,ksht1) %>% 
+	dplyr::select(FY,ghl,m,r,h,n,c1,c2)
+
 x <- ksh %>% 
-	filter(complete.cases(.), mw.cpue.t>0)
+	filter(mw.cpue.t>0)
 @
 
 \subsection{Kodiak Shelikof District}
@@ -94,14 +102,10 @@ x <- ksh %>%
   		2006/07&	160,000		&	161,263	& 1,404,134	& 2,181	& 1,280	& 74 & 644\\
   		2007/08&	170,000		&	170,224	& 1,695,563	& 2,937	& 1,736	& 58 & 577\\
   		2008/09&	170,000		&	12,660 	& 161,065	&  262	&  179	& 48 & 615\\
-  		2009/10&	170,000		&	169,928	& 1,667,958	& 3,496	& 1,921	& 49 & 477\\
-  		2010/11&	170,000		&	170,947	& 1,887,354	& 3,504	& 2,214	& 49 & 539\\
-  		2011/12&	135,000		&	135,957	& 1,432,441	& 2,426	& 1,648	& 56 & 590\\
-  		2012/13&	105,000		&	105,802	& 990,580	& 1,994	& 1,341	& 53 & 497\\
-  		2013/14&	105,000		&	106,099	& 910,919	& 2,472	& 1,637	& 43 & 369\\
-  		2014/15& 105,000$^1$ &  65,938 	& 648,361 	& 1,622	& 1,044	& 41 & 400\\
-  		2015/16& 75,000$^2$	&	40,290 	& 447,037	& 1,323 	& 938		& 30 & 338\\
-  		2016/17& 25,000 		& 25,120 	& 287,750 	&   830 	& 536 	& 47 & 537\\
+<<midtblksh,echo=FALSE,message=FALSE,warning=FALSE, results='asis'>>=		
+			print(xtable(ksht1,align="llcrrcccc",digits=0),only.contents=TRUE, include.rownames=FALSE, 
+					floating=FALSE, include.colnames=FALSE, hline.after=NULL, format.args = list(big.mark = ","))
+@
   		\hline	
   		\multicolumn{3}{l}{$^a$lb scallop meat wt/dredge hour}	\\
   		\multicolumn{3}{l}{$^b$lb scallop round wt/dredge hour}	\\
