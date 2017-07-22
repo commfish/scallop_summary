@@ -13,7 +13,7 @@ f.district_map <- function(x){
 	# map of all fishing areas from 2009 - current assessment
 	xmap <- f.xmap(x)
 	
-	if(!is.na(unique(x$bed))){
+	if(!anyNA(unique(x$bed))){
 		xmap + geom_point(data=x,aes(set_lon,set_lat,color=Bed),alpha=.2) +
 			guides(colour = guide_legend(override.aes = list(alpha = 1))) +
 			facet_wrap(~FY) + scale_x_continuous(breaks = -170:-130) +
