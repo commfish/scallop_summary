@@ -1,5 +1,9 @@
 # code to cleanup scallop observer data taken from the Kodiak Wiki
 # Ben Williams ben.williams@alaska.gov
+
+
+# NOTE Neither catch data nor catch output can be pushed to github due to confidentiality! 
+
 # last updated 2017-06-16
 
 
