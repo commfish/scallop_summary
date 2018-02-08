@@ -1,0 +1,1 @@
+All of the cleaned data files will be stored in the output folder as a .csv
