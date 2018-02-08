@@ -30,8 +30,8 @@ x %>%
   ggplot(aes(Shell_Height, fill = Rtnd_Disc, color = Rtnd_Disc)) + 
   geom_density(alpha = 0.2) + 
   facet_grid(FY~.) +
-  scale_color_manual(values = c('D' = "darkgray", "R" = "black"), labels = c('discard', 'retained'), name = "") + 
-  scale_fill_manual(values = c('D' = "darkgray", "R" = "white"), labels = c('discard', 'retained'), name = "") +
+  scale_color_manual(values = c('D' = "#e41a1c", "R" = "#377eb8"), labels = c('discard', 'retained'), name = "") + 
+  scale_fill_manual(values = c('D' = "#e41a1c", "R" = "#377eb8"), labels = c('discard', 'retained'), name = "") +
   theme(legend.key = element_blank(),
         legend.position = c(0.2, 0.2),
         legend.background = element_rect(fill = "#ffffffaa", color = NA),
@@ -45,8 +45,8 @@ x %>%
   ggplot(aes(Shell_Height, fill = Rtnd_Disc, color = Rtnd_Disc)) + 
   geom_histogram(alpha = 0.2, bins = 60) + 
   facet_grid(FY~.) +
-  scale_color_manual(values = c('D' = "darkgray", "R" = "black"), labels = c('discard', 'retained'), name = "") + 
-  scale_fill_manual(values = c('D' = "darkgray", "R" = "white"), labels = c('discard', 'retained'), name = "") +
+  scale_color_manual(values = c('D' = "#e41a1c", "R" = "#377eb8"), labels = c('discard', 'retained'), name = "") + 
+  scale_fill_manual(values = c('D' = "#e41a1c", "R" = "#377eb8"), labels = c('discard', 'retained'), name = "") +
   theme(legend.key = element_blank(),
         legend.position = c(0.2, 0.2),
         legend.background = element_rect(fill = "#ffffffaa", color = NA),
